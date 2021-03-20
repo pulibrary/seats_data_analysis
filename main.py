@@ -51,19 +51,19 @@ class IDCache(defaultdict):
                 if not self.includes(id):
                     patron_type = IDCache.get_patron_type(id)
                     print(f'Adding {id} to cache')
-                    self[patron_type].append(id)
-                    # Note that None/null (when serialized) may be one of the keys.
-                    # Also above, superclass defaultdict(list) with create a list
-                    # if a key is not already initialized.
+                    self[patron_type].append(reservation['Email'])
+                    # Note that None/null (when serialized) may be one of the
+                    # keys. Also above, note that superclass defaultdict(list)
+                    # will create an empty list if a key is not already
+                    # initialized.
                     c+=1
-                    if c % dump_every == 0:
-                        self._dump()
-                        self.clear()
-                        self._load()
-                # else:
-                #     print(f'{id} in cache')
+                    if c % dump_every == 0: self._dumpload()
         self._dump()
 
+    def _dumpload(self):
+        self._dump()
+        self.clear()
+        self._load()
 
     @staticmethod
     def get_patron_type(id):
@@ -101,6 +101,7 @@ class IDCache(defaultdict):
         return d.get('pustatus')
 
 if __name__ == '__main__':
-    pth = '/Users/jstroop/workspace/seat_analysis/seats_feb1_mar19.csv'
-    cache = IDCache()
-    cache.build(pth)
+
+    id_cache = IDCache()
+    for pth in pths:
+        cache.build(pth)
