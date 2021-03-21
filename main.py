@@ -137,19 +137,28 @@ class DayTimeReporter(SeatDataReader):
                 self.data[day][location][time_block][patron_type] = 1
             else:
                 self.data[day][location][time_block][patron_type] +=1
+        self.data = DayTimeReporter._sort_report(self.data)
+        for i in range(0,7): # turn ints into days of the week
+            day = self.days[i]
+            self.data[day] = self.data.pop(i)
         self._dump('json')
         self._dump('csv')
 
-    # TODO: sort data before each dump; should be able to use recursion
+    @staticmethod
+    def _sort_report(d):
+        tmp = {}
+        for k, v in sorted(d.items()):
+            if isinstance(v, dict):
+                #recursive case
+                tmp[k] = DayTimeReporter._sort_report(v)
+            else:
+                tmp[k] = v
+        return tmp
 
     def _dump(self, fmt):
         if fmt == 'json':
-            sorted_report = {}
-            for day_index in sorted(self.data.keys()):
-                sorted_report[self.days[day_index]] = self.data[day_index]
-                # self.data[self.days[int(day_index)]] = self.data.pop(day_index)
             with open(self.json_dump_fp, 'w') as f:
-                dump(sorted_report, f, ensure_ascii=False, indent=2)
+                dump(self.data, f, ensure_ascii=False, indent=2)
         if fmt == 'csv':
             self._dump_csv()
 
@@ -159,12 +168,11 @@ class DayTimeReporter(SeatDataReader):
         with open(self.csv_dump_fp, 'w') as f:
             csv_writer = writer(f, dialect='excel')
             csv_writer.writerow(fields)
-            for day_index in sorted(self.data.keys()):
-                day = self.days[day_index]
-                for location in sorted(self.data[day_index].keys()):
-                    for time_block in sorted(self.data[day_index][location].keys()):
-                        for patron_type in sorted(self.data[day_index][location][time_block].keys()):
-                            count = self.data[day_index][location][time_block][patron_type]
+            for day in self.data.keys():
+                for location in self.data[day].keys():
+                    for time_block in self.data[day][location].keys():
+                        for patron_type in self.data[day][location][time_block].keys():
+                            count = self.data[day][location][time_block][patron_type]
                             line = (day, location, time_block, patron_type, count)
                             csv_writer.writerow(line)
 
