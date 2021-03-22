@@ -12,7 +12,7 @@ from time import sleep
 
 class SeatDataReader():
     def report_filter(self, r):
-        return ((r['Cancelled At'] != '' or r['Checked In At'] == '') or r['Location'] != 'Test Branch')
+        return (r['Cancelled At'] != '' or r['Checked In At'] != '' or r['Location'] != 'Test Branch')
 
     def read_report(self, pth):
         with open(pth) as csv:
